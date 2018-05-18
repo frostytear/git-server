@@ -28,8 +28,7 @@ def make_app():
 
     _handlers = [
         (r'/(?P<project_name>.+)/info/refs', handlers.InfoRefs),
-        (r'/(?P<project_name>.+)/git-receive-pack', handlers.GitReceivePack),
-        (r'/(?P<project_name>.+)/git-upload-pack', handlers.GitUploadPack)
+        (r'/(?P<project_name>.+)/git-receive-pack', handlers.GitReceivePack)
     ]
 
     app = Application(
