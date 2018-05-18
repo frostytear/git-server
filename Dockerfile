@@ -1,6 +1,6 @@
-FROM          node:9.7-alpine
+FROM          python
 COPY          . .
-RUN           npm install
-ENV           DIR /asyncy/git
+RUN           pip install -r requirements.txt
+ENV           GIT_DIR /asyncy/git
 ENV           GRAPHQL_URL http://graphql-private
-ENTRYPOINT    ["node", "lib/server.js"]
+ENTRYPOINT    ["python", "-m", "app.main"]
