@@ -20,7 +20,7 @@ define('engine_addr',
        default=os.getenv('ENGINE_ADDR', 'engine:8888'),
        help='engine hostname:port')
 define('git_dir',
-       default=os.getenv('GIT_DIR', os.path.join(os.getcwd(), './tmp')),
+       default=os.getenv('GIT_DIR', os.path.join(os.getcwd(), './tmp/')),
        help='Location to start git assets')
 
 

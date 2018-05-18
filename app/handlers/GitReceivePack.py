@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 from raven.contrib.tornado import SentryMixin
 from tornado.web import RequestHandler, HTTPError
 from io import BytesIO
@@ -12,17 +13,20 @@ import tempfile
 
 class GitReceivePack(SentryMixin, RequestHandler):
     def post(self, project_name):
-        dest = os.path.join(self.application.settings['git_dir'], project_name)
+        git_dir = self.application.settings['git_dir']
+        dest = os.path.join(git_dir, project_name)
 
-        tmp = tempfile.mktemp('')
-        with open(tmp, 'wb+') as f:
+        fd, temp_path = tempfile.mkstemp(prefix=git_dir)
+        with open(temp_path, 'wb+') as f:
             f.write(self.request.body)
+        os.close(fd)
 
         res = delegator.run(''.join((
-            'cat %s' % tmp,
+            'cat %s' % temp_path,
             ' | git-receive-pack --stateless-rpc %s' % dest,
+            ' && rm %s' % temp_path,
             ' && cd %s' % dest,
-            ' && git checkout master',
+            ' && git checkout master -q',
             ' && rm -rf .git'
         )))
 
@@ -31,8 +35,15 @@ class GitReceivePack(SentryMixin, RequestHandler):
         self.set_header('Cache-Control', 'no-cache, max-age=0, must-revalidate')
         self.set_header('Content-Type', 'application/x-git-receive-pack-result')
 
-        self.write(res.out)
+        self.write(res.out.replace('00000000', '0000'))
 
-        # [TODO] build project
+        # [TODO] build project and stream output here
+        # https://gist.github.com/maxogden/8925627
+        self.write('000C\u0002hello!\n')  # WORKS
+        self.write('000C\u0002hello!\n')  # WORKS
+        self.write('000C\u0002hello!\n')  # WORKS
+
+        # finish the message
+        self.write('0000')
 
         self.finish()

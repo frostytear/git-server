@@ -11,14 +11,19 @@ import shutil
 class InfoRefs(SentryMixin, RequestHandler):
     def get(self, project_name):
         service = self.get_argument('service')
+
+        # only accept push events
         if service != 'git-receive-pack':
             raise HTTPError(405)
 
+        # get the project destination
         dest = os.path.join(self.application.settings['git_dir'], project_name)
-
         if os.path.exists(dest):
             shutil.rmtree(dest)
         os.makedirs(dest)
+
+        # intialize the git project
+        # denyCurrentBranch is ignored because the project had no branch
         delegator.run(' '.join((
             'cd', dest, '&&',
             'git', 'init', '&&',
@@ -31,13 +36,13 @@ class InfoRefs(SentryMixin, RequestHandler):
         self.set_header('Content-Type',
                         'application/x-%s-advertisement' % service)
 
+        # write back the response
+        # [TODO] this data will always be the same in our case
         packet = '# service=%s\n' % service
-        print(service)
         length = len(packet) + 4
         prefix = '{:04x}'.format(length & 0xFFFF)
         self.write(''.join((prefix, packet, '0000')))
 
-        # [TODO] this data will always be the same
         res = delegator.run(
             '%s --stateless-rpc --advertise-refs %s' % (service, dest)
         )
