@@ -36,7 +36,7 @@ def make_app():
     app = Application(
         handlers=_handlers,
         debug=options.debug,
-        engine='http://%s' % options.engine_addr,
+        engine='http://%s/story/run' % options.engine_addr,
         tmp_dir=options.tmp_dir
     )
 

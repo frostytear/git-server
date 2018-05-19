@@ -10,6 +10,9 @@ import tempfile
 
 
 class GitReceivePack(SentryMixin, RequestHandler):
+    def initialize(self):
+        self.engine_endpoint = self.application.settings['engine']
+
     def prepare(self):
         self.set_header('Expires', 'Fri, 01 Jan 1980 00:00:00 GMT')
         self.set_header('Pragma', 'no-cache')
@@ -45,14 +48,17 @@ class GitReceivePack(SentryMixin, RequestHandler):
 
         try:
             await AsyncHTTPClient().fetch(
-                self.application.settings['engine'],
+                self.engine_endpoint,
                 method='POST',
                 body=dumps({
-                    'data': {
-                        'repo': project_name,
-                        'commit': g_res.out.strip(),
-                        'branch': 'master',
-                        'user': None
+                    'story_name': '~/stories/app/release/new',
+                    'context': {
+                        'data': {
+                            'repo': project_name,
+                            'commit': g_res.out.strip(),
+                            'branch': 'master',
+                            'user': None
+                        }
                     }
                 }),
                 headers={'Content-Type': 'application/json'},
