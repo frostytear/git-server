@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import asyncio
 import os
 import sys
-from tornado import ioloop
 from tornado.options import define, options
 from tornado.web import Application
+import tornado.platform.asyncio
 from raven.contrib.tornado import AsyncSentryClient
 
 from . import handlers
@@ -47,8 +48,10 @@ def make_app():
 if __name__ == '__main__':
     try:
         options.parse_command_line()
+        tornado.platform.asyncio.AsyncIOMainLoop().install()
         app = make_app()
         app.listen(options.port)
-        ioloop.IOLoop.current().start()
+        asyncio.get_event_loop().run_forever()
+
     except KeyboardInterrupt:
         sys.stdout.write('Goodbye.')

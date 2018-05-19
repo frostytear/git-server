@@ -4,7 +4,6 @@ import os
 from json import dumps
 from raven.contrib.tornado import SentryMixin
 from tornado.web import RequestHandler, HTTPError
-from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
 import delegator
 import tempfile
@@ -17,8 +16,7 @@ class GitReceivePack(SentryMixin, RequestHandler):
         self.set_header('Cache-Control', 'no-cache, max-age=0, must-revalidate')
         self.set_header('Content-Type', 'application/x-git-receive-pack-result')
 
-    @gen.coroutine
-    def post(self, project_name):
+    async def post(self, project_name):
         tmp_dir = self.application.settings['tmp_dir']
         git_dir = os.path.join(tmp_dir, project_name)
 
@@ -46,7 +44,7 @@ class GitReceivePack(SentryMixin, RequestHandler):
         )))
 
         try:
-            yield AsyncHTTPClient().fetch(
+            await AsyncHTTPClient().fetch(
                 self.application.settings['engine'],
                 method='POST',
                 body=dumps({
