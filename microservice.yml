@@ -1,0 +1,18 @@
+types:
+  event:
+    data:
+      repo(string):
+      commit(string):
+      branch(string):
+      user:
+    write(function):
+      arguments:
+      - name: data
+      - type: string
+    error(function):
+      arguments:
+      - name: message
+        type: string
+    finish(function):
+      http:
+        close: true

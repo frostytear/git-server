@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from json import dumps
 from raven.contrib.tornado import SentryMixin
 from tornado.web import RequestHandler, HTTPError
 from tornado import gen
@@ -32,25 +33,40 @@ class GitReceivePack(SentryMixin, RequestHandler):
         os.close(fd)
 
         # run the git-receive-pack against the new file
-        res = delegator.run(''.join((
+        grp_res = delegator.run(''.join((
             'cat %s' % temp_path,
-            ' | git-receive-pack --stateless-rpc %s' % git_dir,
-            ' && rm %s' % temp_path,
-            ' && cd %s' % git_dir,
-            ' && git checkout master -q'
+            ' | git-receive-pack --stateless-rpc %s' % git_dir
         )))
-
         # remove last 4 from output
         # The string `00000000` would end the transmissionx
         # Write new data  ^  in between the 4 zeros.
-        self.write(res.out[:-4])
+        self.write(grp_res.out[:-4])
 
-        yield AsyncHTTPClient().fetch(
-            self.application.settings['engine'],
-            body='{}',
-            streaming_callback=self._callback,
-            request_timeout=60
-        )
+        g_res = delegator.run(''.join((
+            'rm %s' % temp_path,
+            ' && cd %s' % git_dir,
+            ' && git checkout master -q',
+            ' && git log -1 --format="%H"',
+        )))
+
+        try:
+            yield AsyncHTTPClient().fetch(
+                self.application.settings['engine'],
+                body=dumps({
+                    'data': {
+                        'repo': project_name,
+                        'commit': g_res.out.strip(),
+                        'branch': 'master',
+                        'user': None
+                    }
+                }),
+                headers={'Content-Type': 'application/json'},
+                streaming_callback=self._callback,
+                request_timeout=60
+            )
+        except HTTPError as err:
+            self._callback('Error: %s' % err.message)
+            self.set_status(500)
 
         # write the end zeros
         self.write('0000')
