@@ -11,7 +11,9 @@ import tempfile
 
 class GitReceivePack(SentryMixin, RequestHandler):
     def initialize(self):
-        self.engine_endpoint = self.application.settings['engine']
+        self.engine_url = 'http://{}/story/run'.format(
+            self.application.settings['engine']
+        )
 
     def prepare(self):
         self.set_header('Expires', 'Fri, 01 Jan 1980 00:00:00 GMT')
@@ -48,7 +50,7 @@ class GitReceivePack(SentryMixin, RequestHandler):
 
         try:
             await AsyncHTTPClient().fetch(
-                self.engine_endpoint,
+                self.engine_url,
                 method='POST',
                 body=dumps({
                     'story_name': '~/stories/app/release/new',

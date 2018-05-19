@@ -18,8 +18,8 @@ define('port',
 define('sentry_dsn',
        default=os.getenv('SENTRY_DSN'),
        help='Sentry DSN')
-define('engine_addr',
-       default=os.getenv('ENGINE_ADDR', 'engine:8888'),
+define('engine',
+       default=os.getenv('ENGINE', 'engine:8888'),
        help='engine hostname:port')
 define('tmp_dir',
        default=os.getenv('TMP_DIR', os.path.join(os.getcwd(), './tmp/')),
@@ -36,7 +36,7 @@ def make_app():
     app = Application(
         handlers=_handlers,
         debug=options.debug,
-        engine='http://%s/story/run' % options.engine_addr,
+        engine=options.engine,
         tmp_dir=options.tmp_dir
     )
 
