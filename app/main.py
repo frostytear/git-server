@@ -19,8 +19,8 @@ define('sentry_dsn',
 define('engine_addr',
        default=os.getenv('ENGINE_ADDR', 'engine:8888'),
        help='engine hostname:port')
-define('git_dir',
-       default=os.getenv('GIT_DIR', os.path.join(os.getcwd(), './tmp/')),
+define('tmp_dir',
+       default=os.getenv('TMP_DIR', os.path.join(os.getcwd(), './tmp/')),
        help='Location to start git assets')
 
 
@@ -34,8 +34,8 @@ def make_app():
     app = Application(
         handlers=_handlers,
         debug=options.debug,
-        engine_addr=options.engine_addr,
-        git_dir=options.git_dir
+        engine='http://%s' % options.engine_addr,
+        tmp_dir=options.tmp_dir
     )
 
     app.sentry_client = AsyncSentryClient(options.sentry_dsn)
