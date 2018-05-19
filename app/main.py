@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 from tornado import ioloop
 from tornado.options import define, options
 from tornado.web import Application
@@ -44,7 +45,10 @@ def make_app():
 
 
 if __name__ == '__main__':
-    options.parse_command_line()
-    app = make_app()
-    app.listen(options.port)
-    ioloop.IOLoop.current().start()
+    try:
+        options.parse_command_line()
+        app = make_app()
+        app.listen(options.port)
+        ioloop.IOLoop.current().start()
+    except KeyboardInterrupt:
+        sys.stdout.write('Goodbye.')

@@ -5,11 +5,7 @@ from json import dumps
 from raven.contrib.tornado import SentryMixin
 from tornado.web import RequestHandler, HTTPError
 from tornado import gen
-from io import BytesIO
-from dulwich.pack import PackStreamReader
 from tornado.httpclient import AsyncHTTPClient
-import subprocess
-import os.path
 import delegator
 import tempfile
 
@@ -52,6 +48,7 @@ class GitReceivePack(SentryMixin, RequestHandler):
         try:
             yield AsyncHTTPClient().fetch(
                 self.application.settings['engine'],
+                method='POST',
                 body=dumps({
                     'data': {
                         'repo': project_name,
@@ -79,6 +76,6 @@ class GitReceivePack(SentryMixin, RequestHandler):
         https://git-scm.com/book/gr/v2/Git-Internals-Transfer-Protocols#_uploading_data
         """
         buffer = 6
-        for line in chunk.split('\n'):
+        for line in chunk.decode('utf-8').split('\n'):
             lead = ('%x' % (len(line) + buffer)).zfill(4)
             self.write('%s\u0002%s\n' % (lead, line))

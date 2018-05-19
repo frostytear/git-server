@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import subprocess
 import os.path
 from raven.contrib.tornado import SentryMixin
 from tornado.web import RequestHandler, HTTPError
