@@ -13,16 +13,20 @@ from . import handlers
 
 define('debug', default=False, help='enable debug')
 define('port',
-       default=int(os.getenv('PORT', '8888')),
+       type=int,
+       default=os.getenv('PORT', '8888'),
        help='port to listen on')
 define('sentry_dsn',
        default=os.getenv('SENTRY_DSN'),
        help='Sentry DSN')
 define('engine',
        default=os.getenv('ENGINE', 'engine:8888'),
-       help='engine hostname:port')
-define('tmp_dir',
-       default=os.getenv('TMP_DIR', os.path.join(os.getcwd(), './tmp/')),
+       help='Engine hostname:port')
+define('story',
+       default=os.getenv('STORY'),
+       help='Story to run when releasing')
+define('dir',
+       default=os.getenv('DIR', os.path.join(os.getcwd(), './tmp/')),
        help='Location to start git assets')
 
 
@@ -35,9 +39,7 @@ def make_app():
 
     app = Application(
         handlers=_handlers,
-        debug=options.debug,
-        engine=options.engine,
-        tmp_dir=options.tmp_dir
+        debug=options.debug
     )
 
     app.sentry_client = AsyncSentryClient(options.sentry_dsn)

@@ -3,11 +3,13 @@
 import os.path
 from raven.contrib.tornado import SentryMixin
 from tornado.web import RequestHandler, HTTPError
+from tornado.options import options
 import delegator
 import shutil
 
 
 class InfoRefs(SentryMixin, RequestHandler):
+
     def prepare(self):
         self.set_header('Expires', 'Fri, 01 Jan 1980 00:00:00 GMT')
         self.set_header('Pragma', 'no-cache')
@@ -23,7 +25,7 @@ class InfoRefs(SentryMixin, RequestHandler):
             raise HTTPError(405)
 
         # get the project destination
-        git_dir = os.path.join(self.application.settings['tmp_dir'], project_name)
+        git_dir = os.path.join(options.dir, project_name)
         if os.path.exists(git_dir):
             shutil.rmtree(git_dir)
         os.makedirs(git_dir)
@@ -31,11 +33,9 @@ class InfoRefs(SentryMixin, RequestHandler):
         # intialize the git project
         # denyCurrentBranch is ignored because the project had no branch
         delegator.run(
-            (
-                'cd %s'
-                ' && git init'
-                ' && git config --add receive.denyCurrentBranch ignore'
-            ) % git_dir
+            f'cd {git_dir}'
+            ' && git init'
+            ' && git config --add receive.denyCurrentBranch ignore'
         )
 
         self.finish(
