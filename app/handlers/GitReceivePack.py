@@ -37,8 +37,8 @@ class GitReceivePack(SentryMixin, RequestHandler):
         self.write(grp_res.out[:-4])
 
         g_res = delegator.run(
-            'rm {temp_path}'
-            ' && cd {git_dir}'
+            f'rm {temp_path}'
+            f' && cd {git_dir}'
             ' && git checkout master -q'
             ' && git log -1 --format="%H"'
         )
