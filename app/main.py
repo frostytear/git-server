@@ -19,9 +19,9 @@ define('port',
 define('sentry_dsn',
        default=os.getenv('SENTRY_DSN'),
        help='Sentry DSN')
-define('engine',
-       default=os.getenv('ENGINE', 'engine:8888'),
-       help='Engine hostname:port')
+define('deploy_url',
+       default=os.getenv('DEPLOY_URL', 'http://engine:8888/story/run'),
+       help='Location to post payload of deployment')
 define('story',
        default=os.getenv('STORY'),
        help='Story to run when releasing')

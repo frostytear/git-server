@@ -45,7 +45,7 @@ class GitReceivePack(SentryMixin, RequestHandler):
 
         try:
             await AsyncHTTPClient().fetch(
-                f'http://{options.engine}/story/run',
+                options.deploy_url,
                 method='POST',
                 body=dumps({
                     'story_name': options.story,
