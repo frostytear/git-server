@@ -81,3 +81,4 @@ class GitReceivePack(SentryMixin, RequestHandler):
         for line in chunk.decode('utf-8').split('\n'):
             lead = ('%x' % (len(line) + buffer)).zfill(4)
             self.write(f'{lead}\u0002{line}\n')
+            self.flush()
