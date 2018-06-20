@@ -42,7 +42,9 @@ def make_app():
         debug=options.debug
     )
 
-    app.sentry_client = AsyncSentryClient(options.sentry_dsn)
+    app.sentry_client = AsyncSentryClient(dsn=options.sentry_dsn)
+    app.sentry_client.extra_context({'environment': os.getenv('ENVIRONMENT')})
+    app.sentry_client.user_context({'id': os.getenv('ASYNCY_USER_ID')})
 
     return app
 
