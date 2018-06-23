@@ -1,2 +1,4 @@
 tmp
 coverage
+venv
+__pycache__

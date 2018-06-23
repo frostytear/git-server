@@ -43,42 +43,58 @@ class GitReceivePack(SentryMixin, RequestHandler):
             ' && git log -1 --format="%H"'
         )
 
-        try:
-            await AsyncHTTPClient().fetch(
-                options.deploy_url,
-                method='POST',
-                body=dumps({
-                    'story_name': options.story,
-                    'function': 'NewRelease',
-                    'context': {
-                        'data': {
-                            'repo': project_name,
-                            'commit': g_res.out.strip(),
-                            'branch': 'master',
-                            'user': None
-                        }
+        def streaming_callback(chunk):
+            chunk = chunk.decode('utf-8')
+
+            if '**ERROR**' in chunk:
+                streaming_callback.error = True
+                chunk = chunk.replace('**ERROR**', '')
+
+            self.write(self.pack_chunk(chunk))
+            self.flush()
+
+        streaming_callback.error = False
+
+        await AsyncHTTPClient().fetch(
+            options.deploy_url,
+            method='POST',
+            body=dumps({
+                'story_name': options.story,
+                'function': 'NewRelease',
+                'context': {
+                    'data': {
+                        'repo': project_name,
+                        'commit': g_res.out.strip(),
+                        'branch': 'master',
+                        'user': None
                     }
-                }),
-                headers={'Content-Type': 'application/json'},
-                streaming_callback=self._callback,
-                request_timeout=60
-            )
-        except HTTPError as err:
-            self._callback(f'Error: {err.message}')
-            self.set_status(500)
+                }
+            }),
+            headers={'Content-Type': 'application/json'},
+            streaming_callback=streaming_callback,
+            request_timeout=60
+        )
 
         # write the end zeros
         self.write('0000')
 
+        if streaming_callback.error:
+            streaming_callback((f'ERR failed').encode('utf-8'))
+            self.write('0000')
+
         self.finish()
 
-    def _callback(self, chunk):
+    def pack_chunk(self, data):
         """
         Writes via git-receive-pack protocol.
         https://git-scm.com/book/gr/v2/Git-Internals-Transfer-Protocols#_uploading_data
+
+        The maximum length of a pkt-line's data component is 65516 bytes.
+        Implementations MUST NOT send pkt-line whose length exceeds 65520
+        (65516 bytes of payload + 4 bytes of length data).
         """
         buffer = 6
-        for line in chunk.decode('utf-8').split('\n'):
-            lead = ('%x' % (len(line) + buffer)).zfill(4)
-            self.write(f'{lead}\u0002{line}\n')
-            self.flush()
+        return ''.join(
+            f'{("%x" % (len(line) + buffer)).zfill(4)}\u0002{line}\n'
+            for line in data.split('\n')
+        )

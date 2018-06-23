@@ -14,7 +14,7 @@ It will accept the contents, checkout the branch and run Asyncy release story.
 #### Setup
 
 ```shell
-virtualenv -p python3.6 venv
+virtualenv -p python3 venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
